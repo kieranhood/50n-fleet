@@ -1,5 +1,9 @@
 # Installed collections (ansible-galaxy collection install -r requirements.yml)
 .collections/
+# Large raw files belong in private storage, linked from the site's documents
+*.esx
+*.dwg
+
 # Never commit decrypted secrets or keys
 *.dec.yml
 *.key

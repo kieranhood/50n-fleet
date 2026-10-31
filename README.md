@@ -9,6 +9,9 @@ inventory.yml                 every site, grouped (cafes, yachts)
 group_vars/all.yml            defaults for every site
 host_vars/<site>.yml          what's different about one site: which apps, versions, portal settings
 sites/<site>/site.md          the human record: contacts, hardware, network, change log
+sites/<site>/plans/           floor plans / deck plans and our network layouts drawn on them
+sites/<site>/surveys/         Wi-Fi surveys, one folder each (predictive, validation, troubleshooting)
+sites/<site>/commissioning/   one note per visit: what was done, tested and handed over
 sites/<site>/portal/<id>/     the site's captive portal page, logo and fonts
 sites/<site>/secrets.sops.yml the site's secrets, encrypted (never committed in plain text)
 sites/_template/              copy this for a new site
@@ -61,6 +64,30 @@ through Cloudflare Access the first time.
 7. **From then on**, through the tunnel: `ansible-playbook playbooks/site.yml --limit <site>`.
 8. **Monitoring.** Create a push monitor for the site in Uptime Kuma and put its URL in `heartbeat_url`.
 9. Commit, with a line in the site's change log.
+
+## Plans, surveys and commissioning notes
+
+Each site keeps its documents next to its settings, so the history of what was designed, installed and tested
+stays with it:
+
+| What | Where | Template |
+| --- | --- | --- |
+| Floor plans and network layouts (AP positions, switch, rack, cable runs) | `sites/<site>/plans/plans.md` and the images beside it | `sites/_template/plans/plans.md` |
+| Wi-Fi surveys: a predictive design before install, validation after, troubleshooting later | `sites/<site>/surveys/<YYYY-MM-DD>-<type>/survey.md` with `heatmaps/` | `sites/_template/surveys/survey.md` |
+| Commissioning: one note per visit (survey, equipment, configuration, tests, handover, snags) | `sites/<site>/commissioning/<YYYY-MM-DD>-<what>.md` with `files/` | `sites/_template/commissioning.md` |
+
+How they fit together:
+- **`site.md` is the current state.** Plans, surveys and commissioning notes are the dated history behind it.
+- Surveys and commissioning notes name the **plan revision** they used (e.g. "Ground floor, rev B").
+- A survey's open actions go on the commissioning note's snag list.
+
+**Large files stay out of Git.** Keep files here small: compressed heatmaps, annotated plans and photos, each under
+5 MB (CI rejects bigger ones). Put raw survey projects (e.g. Ekahau `.esx`, ignored by Git), CAD drawings and
+full-size originals in private storage, such as a Cloudflare R2 bucket with one folder per site. Link them from the
+document with their SHA-256 (`shasum -a 256 <file>`), so anyone can check a file is the one that was recorded.
+
+**Confidentiality.** Yacht GA drawings and layouts are often covered by an NDA. Check what the captain or management
+company allows before storing plans, keep this repo private, and note any restrictions in `plans.md`.
 
 ## Day to day
 

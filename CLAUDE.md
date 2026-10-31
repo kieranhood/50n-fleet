@@ -19,6 +19,9 @@ ansible-playbook playbooks/site.yml --limit <site> --check --diff
   secrets use `no_log: true`.
 - **Don't guess site details.** Anything not confirmed is marked **TODO: confirm** in `site.md` and `host_vars`.
 - **Every change to a site adds a line to its change log** (`sites/<site>/site.md`).
+- **Site documents** (plans, Wi-Fi surveys, commissioning notes) follow the templates in `sites/_template/`. Files
+  in Git stay under 5 MB; raw survey projects, CAD and full-size originals go in private storage, linked with their
+  SHA-256. Respect any confidentiality restriction noted in a site's `plans/plans.md`.
 - **Roles must be safe to re-run** and change only what differs.
 - **Live boats:** never change a PMS database or its backups, and never update the PMS except through its own
   `scripts/update.sh` with `pms_update=true` and the owner's go-ahead. Never mid-charter.

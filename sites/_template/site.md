@@ -69,6 +69,14 @@ Firewall rules that matter (UniFi):
 | Tunnel token | `secrets.sops.yml` › `cloudflared_tunnel_token` |
 | Local admin logins (console, switches) | password manager › `<item>` |
 
+## Documents
+
+| | Where |
+| --- | --- |
+| Floor plans and network layouts | `plans/plans.md` |
+| Wi-Fi surveys | `surveys/<date>-<type>/survey.md` |
+| Commissioning notes (one per visit) | `commissioning/<date>-<what>.md` |
+
 ## Change log
 
 | Date | Who | What |
