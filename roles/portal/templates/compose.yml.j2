@@ -1,0 +1,26 @@
+# {{ ansible_managed }}: made from 50n-fleet, edit host_vars/{{ inventory_hostname }}.yml instead.
+# The portal is reachable by guests, so its container gets as little as possible: no root, a read-only filesystem,
+# no Linux capabilities, its own network (no route to other containers such as the PMS) and a memory cap.
+services:
+  portal:
+    image: "{{ portal_image }}:{{ portal_version }}"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "8080"
+      CLIENTS_DIR: /clients
+    ports:
+      - "{{ (portal_bind_ip ~ ':') if portal_bind_ip else '' }}{{ portal_port }}:8080"
+    volumes:
+      - ./clients:/clients:ro
+    user: node
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: {{ portal_memory }}
+    pids_limit: 100
+    networks: [portal]
+
+networks:
+  portal: {}

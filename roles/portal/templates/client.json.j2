@@ -1,0 +1,26 @@
+{%- set env_prefix = item.id | upper | replace('-', '_') -%}
+{%- set unifi = item.unifi | default({}) -%}
+{%- set settings = {
+  'name': item.name | default(item.id),
+  'redirectUrl': item.redirect_url | default(''),
+  'guestMinutes': item.guest_minutes | default(none),
+  'match': {
+    'sourceIps': item.match.sourceIps | default([]),
+    'sourceHosts': item.match.sourceHosts | default([]),
+    'serverIps': item.match.serverIps | default([]),
+    'serverPorts': item.match.serverPorts | default([]),
+    'ssids': item.match.ssids | default([]),
+  },
+  'unifi': {
+    'type': unifi.type | default('integration'),
+    'url': unifi.url | default(''),
+    'consoleId': unifi.consoleId | default(''),
+    'site': unifi.site | default('default'),
+    'verifyTls': unifi.verifyTls | default(false),
+    'apiKeyEnv': env_prefix ~ '_UNIFI_API_KEY',
+    'usernameEnv': env_prefix ~ '_UNIFI_USERNAME',
+    'passwordEnv': env_prefix ~ '_UNIFI_PASSWORD',
+  },
+  'dryRun': item.dry_run | default(false),
+} -%}
+{{ settings | to_nice_json(indent=2) }}

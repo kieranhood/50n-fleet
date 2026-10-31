@@ -1,0 +1,21 @@
+# Who can decrypt each site's secrets (sites/<site>/secrets.sops.yml):
+#   - 50NORTH admins: every site
+#   - a site's own server: its own file only, and only if it updates itself (fleet_pull). That way a lost or stolen
+#     server can't reveal any other site's secrets.
+# Replace the placeholder with a real age public key (age-keygen -o ~/.config/sops/age/keys.txt prints it), then
+# after any change here run: sops updatekeys sites/<site>/secrets.sops.yml
+keys:
+  - &admin_kieran age1REPLACE_WITH_YOUR_AGE_PUBLIC_KEY
+  # - &server_dartlings age1...   # printed by the fleet_pull role on the Dartlings server
+
+creation_rules:
+  - path_regex: sites/dartlings/secrets\.sops\.yml$
+    key_groups:
+      - age:
+          - *admin_kieran
+          # - *server_dartlings
+  # Any other site: admins only, until its server key is added above
+  - path_regex: sites/[^/]+/secrets\.sops\.yml$
+    key_groups:
+      - age:
+          - *admin_kieran

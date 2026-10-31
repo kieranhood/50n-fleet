@@ -1,0 +1,22 @@
+#!/bin/sh
+# {{ ansible_managed }}: made from 50n-fleet.
+# Checks this server's apps and pushes the result to its Uptime Kuma push monitor. Pushing out works behind Starlink
+# and 4G; if pushes stop arriving, Uptime Kuma raises the alarm.
+URL="$(cat {{ fleet_root }}/keys/heartbeat_url)"
+problems=""
+
+{% if portal_enabled %}
+curl -fs --max-time 5 http://127.0.0.1:{{ portal_port }}/healthz >/dev/null || problems="$problems portal-down"
+{% endif %}
+{% if pms_enabled %}
+curl -fs --max-time 5 http://127.0.0.1:3000/healthz >/dev/null || problems="$problems pms-down"
+{% endif %}
+disk=$(df --output=pcent / | tail -1 | tr -dc '0-9')
+[ "$disk" -ge {{ heartbeat_disk_limit_percent }} ] && problems="$problems disk-${disk}%"
+
+if [ -z "$problems" ]; then
+  status=up msg="OK disk ${disk}%"
+else
+  status=down msg="$(echo $problems | tr ' ' ',')"
+fi
+curl -fsG --max-time 10 "$URL" --data-urlencode "status=$status" --data-urlencode "msg=$msg" >/dev/null

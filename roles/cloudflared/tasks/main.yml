@@ -1,0 +1,31 @@
+# Cloudflare Tunnel: the server connects out to Cloudflare, so 50NORTH admins can SSH in (through Cloudflare Access)
+# with no open ports, even behind Starlink or 4G. In the tunnel's settings, route ssh-<site>.50northsystems.com to
+# ssh://localhost:22 and protect it with an Access application.
+- name: Add Cloudflare's signing key
+  ansible.builtin.get_url:
+    url: https://pkg.cloudflare.com/cloudflare-main.gpg
+    dest: /usr/share/keyrings/cloudflare-main.gpg
+    mode: "0644"
+
+- name: Add Cloudflare's apt repository
+  ansible.builtin.apt_repository:
+    repo: deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main
+    filename: cloudflared
+    state: present
+
+- name: Install cloudflared
+  ansible.builtin.apt:
+    name: cloudflared
+    update_cache: true
+
+- name: Run the site's tunnel as a service
+  ansible.builtin.command:
+    cmd: cloudflared service install {{ site_secrets.cloudflared_tunnel_token }}
+    creates: /etc/systemd/system/cloudflared.service
+  when: site_secrets.cloudflared_tunnel_token | default('') | length > 0
+  no_log: true
+
+- name: Note that the tunnel isn't set up yet
+  ansible.builtin.debug:
+    msg: "No cloudflared_tunnel_token in this site's secrets yet: remote access through Cloudflare isn't set up."
+  when: site_secrets.cloudflared_tunnel_token | default('') | length == 0

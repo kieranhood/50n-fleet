@@ -1,0 +1,28 @@
+# Dartlings Indoor Play Café, Dartington Hall Estate, Totnes. The human record is sites/dartlings/site.md.
+# Values marked "TODO: confirm" are placeholders until the site survey.
+
+site_name: Dartlings
+
+# --- Apps ------------------------------------------------------------------------------------------------------------
+portal_enabled: true
+portal_version: "2.1.0"
+portal_clients:
+  - id: dartlings
+    name: Dartlings
+    redirect_url: https://www.dartlingsplay.com
+    guest_minutes: null            # null: use the expiry set in UniFi's Hotspot settings
+    match:
+      # On site, only devices on the guest network may connect guests.
+      sourceIps: ["10.0.50.0/24"]  # TODO: confirm the guest network's range
+      ssids: ["Dartlings Guest"]   # TODO: confirm the guest Wi-Fi name
+    unifi:
+      # The portal runs on site, so it talks to the console directly with a Network API key that only reaches this
+      # console (Settings › Control Plane › Integrations). The key is in secrets: unifi_api_keys.dartlings.
+      type: integration
+      url: https://192.168.1.1     # TODO: confirm the console's address
+      site: default
+
+pms_enabled: false
+
+# --- Monitoring ------------------------------------------------------------------------------------------------------
+netdata_enabled: false

@@ -1,0 +1,77 @@
+# Heartbeat to Uptime Kuma every minute, and optionally the Netdata agent (connects out to Netdata Cloud).
+- name: Heartbeat
+  when: heartbeat_enabled and site_secrets.heartbeat_url | default('') | length > 0
+  block:
+    - name: Make the keys folder
+      ansible.builtin.file:
+        path: "{{ fleet_root }}/keys"
+        state: directory
+        mode: "0700"
+
+    - name: Store the push monitor URL (it works as a password)
+      ansible.builtin.copy:
+        content: "{{ site_secrets.heartbeat_url }}\n"
+        dest: "{{ fleet_root }}/keys/heartbeat_url"
+        mode: "0600"
+      no_log: true
+
+    - name: Install the heartbeat script
+      ansible.builtin.template:
+        src: heartbeat.sh.j2
+        dest: /usr/local/bin/50n-heartbeat
+        mode: "0755"
+
+    - name: Install the heartbeat service and timer
+      ansible.builtin.copy:
+        dest: "/etc/systemd/system/{{ item.name }}"
+        content: "{{ item.content }}"
+        mode: "0644"
+      loop:
+        - name: 50n-heartbeat.service
+          content: |
+            [Unit]
+            Description=Push this server's health to Uptime Kuma
+            [Service]
+            Type=oneshot
+            ExecStart=/usr/local/bin/50n-heartbeat
+        - name: 50n-heartbeat.timer
+          content: |
+            [Unit]
+            Description=Push this server's health every minute
+            [Timer]
+            OnBootSec=1min
+            OnUnitActiveSec=1min
+            [Install]
+            WantedBy=timers.target
+      loop_control: { label: "{{ item.name }}" }
+
+    - name: Start the heartbeat
+      ansible.builtin.systemd_service:
+        name: 50n-heartbeat.timer
+        enabled: true
+        state: started
+        daemon_reload: true
+
+- name: Note that the heartbeat isn't set up yet
+  ansible.builtin.debug:
+    msg: "No heartbeat_url in this site's secrets yet: this server isn't reporting to Uptime Kuma."
+  when: heartbeat_enabled and site_secrets.heartbeat_url | default('') | length == 0
+
+- name: Netdata agent
+  when: netdata_enabled
+  block:
+    - name: Download the Netdata installer
+      ansible.builtin.get_url:
+        url: https://get.netdata.cloud/kickstart.sh
+        dest: /root/netdata-kickstart.sh
+        mode: "0700"
+
+    - name: Install Netdata and connect it to Netdata Cloud
+      ansible.builtin.command:
+        cmd: >-
+          /root/netdata-kickstart.sh --stable-channel --non-interactive
+          --claim-token {{ site_secrets.netdata_claim_token }}
+          --claim-rooms {{ site_secrets.netdata_claim_rooms }}
+          --claim-url https://app.netdata.cloud
+        creates: /usr/sbin/netdata
+      no_log: true

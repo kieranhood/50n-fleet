@@ -1,0 +1,77 @@
+# vault.50N PMS boat server (kieranhood/PMS, docker-compose.boat.yml).
+# This role is careful by design, following the PMS's own rules for live boats:
+#   - it installs the PMS once, and never rewrites an existing .env (that would change a live database's password);
+#   - it updates only when run with -e pms_update=true, and then through the PMS's own scripts/update.sh, which backs
+#     up the database first and refuses to update if the backup fails. Never update mid-charter.
+# Set the yacht's time zone in the app (Users › Vessel), which takes precedence over the compose file's TZ.
+- name: Check the PMS has what it needs
+  ansible.builtin.assert:
+    that:
+      - site_secrets.pms_postgres_password | default('') | length >= 16
+      - site_secrets.pms_deploy_key | default('') | length > 0
+    fail_msg: "Set pms_postgres_password (16+ characters) and pms_deploy_key in sites/{{ inventory_hostname }}/secrets.sops.yml"
+
+- name: Make the keys folder
+  ansible.builtin.file:
+    path: "{{ fleet_root }}/keys"
+    state: directory
+    mode: "0700"
+
+- name: Install the PMS deploy key (read-only access to kieranhood/PMS)
+  ansible.builtin.copy:
+    content: "{{ site_secrets.pms_deploy_key | trim }}\n"
+    dest: "{{ fleet_root }}/keys/pms_deploy"
+    mode: "0600"
+  no_log: true
+
+- name: Is the PMS installed already?
+  ansible.builtin.stat:
+    path: "{{ fleet_root }}/pms/.git"
+  register: pms_checkout
+
+- name: First install — get the PMS code at pms_ref
+  ansible.builtin.git:
+    repo: "{{ pms_repo }}"
+    dest: "{{ fleet_root }}/pms"
+    version: "{{ pms_ref }}"
+    key_file: "{{ fleet_root }}/keys/pms_deploy"
+    accept_newhostkey: true
+  when: not pms_checkout.stat.exists
+
+- name: Let the PMS's own update script use the deploy key
+  community.general.git_config:
+    scope: local
+    repo: "{{ fleet_root }}/pms"
+    name: core.sshCommand
+    value: "ssh -i {{ fleet_root }}/keys/pms_deploy -o StrictHostKeyChecking=accept-new"
+
+- name: Write the PMS settings (first install only; never overwritten)
+  ansible.builtin.copy:
+    dest: "{{ fleet_root }}/pms/.env"
+    content: |
+      POSTGRES_PASSWORD={{ site_secrets.pms_postgres_password }}
+    mode: "0600"
+    force: false
+  no_log: true
+
+- name: First install — start the PMS
+  ansible.builtin.command:
+    cmd: docker compose -f docker-compose.boat.yml up -d --build
+    chdir: "{{ fleet_root }}/pms"
+  when: not pms_checkout.stat.exists
+  changed_when: true
+
+- name: Update the PMS to pms_ref (only with -e pms_update=true; backs up first)
+  ansible.builtin.command:
+    cmd: ./scripts/update.sh docker-compose.boat.yml {{ pms_ref }}
+    chdir: "{{ fleet_root }}/pms"
+  when: pms_checkout.stat.exists and pms_update | bool
+  changed_when: true
+
+- name: Check the PMS answers /healthz
+  ansible.builtin.uri:
+    url: http://127.0.0.1:3000/healthz
+  register: pms_health
+  until: pms_health.status == 200
+  retries: 36
+  delay: 5

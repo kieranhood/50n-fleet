@@ -1,0 +1,86 @@
+# Lets a server keep itself up to date from this repo (ansible-pull on a timer), for boats that are often offline:
+# whenever it's online it applies whatever has changed for it. It can decrypt only its own secrets: its age key is
+# made here, and you add the printed public key for this site in .sops.yaml, then run sops updatekeys.
+# PMS updates still need pms_update in host_vars, so a boat never updates its PMS by surprise.
+- name: Install git, age and Python's venv
+  ansible.builtin.apt:
+    name: [git, age, python3-venv]
+
+# Debian's own ansible-core can be too old for the collections, so the server gets a pinned copy of its own
+- name: Install a pinned Ansible for the server to run itself
+  ansible.builtin.pip:
+    name: "ansible-core{{ fleet_pull_ansible_version }}"
+    virtualenv: "{{ fleet_root }}/ansible"
+    virtualenv_command: python3 -m venv
+
+- name: Install sops
+  ansible.builtin.apt:
+    deb: "https://github.com/getsops/sops/releases/download/v{{ sops_version }}/sops_{{ sops_version }}_{{ fleet_pull_arch }}.deb"
+
+- name: Make the keys folder
+  ansible.builtin.file:
+    path: "{{ fleet_root }}/keys"
+    state: directory
+    mode: "0700"
+
+- name: Install the fleet deploy key (read-only access to kieranhood/50n-fleet)
+  ansible.builtin.copy:
+    content: "{{ site_secrets.fleet_deploy_key | trim }}\n"
+    dest: "{{ fleet_root }}/keys/fleet_deploy"
+    mode: "0600"
+  no_log: true
+  when: site_secrets.fleet_deploy_key | default('') | length > 0
+
+- name: Make this server's own age key (for decrypting its own secrets only)
+  ansible.builtin.command:
+    cmd: age-keygen -o {{ fleet_root }}/keys/age.txt
+    creates: "{{ fleet_root }}/keys/age.txt"
+
+- name: Read this server's public age key
+  ansible.builtin.command: age-keygen -y {{ fleet_root }}/keys/age.txt
+  register: fleet_pull_age_key
+  changed_when: false
+
+- name: Show the key to add to .sops.yaml
+  ansible.builtin.debug:
+    msg: "Add this to .sops.yaml for sites/{{ inventory_hostname }}, then run sops updatekeys: {{ fleet_pull_age_key.stdout }}"
+
+- name: Install the pull service and timer
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/{{ item.name }}"
+    content: "{{ item.content }}"
+    mode: "0644"
+  loop:
+    - name: 50n-fleet-pull.service
+      content: |
+        [Unit]
+        Description=Apply this server's settings from 50n-fleet
+        After=network-online.target
+        Wants=network-online.target
+        [Service]
+        Type=oneshot
+        Environment=SOPS_AGE_KEY_FILE={{ fleet_root }}/keys/age.txt
+        Environment=PATH={{ fleet_root }}/ansible/bin:/usr/local/bin:/usr/bin:/bin
+        Environment="GIT_SSH_COMMAND=ssh -i {{ fleet_root }}/keys/fleet_deploy -o StrictHostKeyChecking=accept-new"
+        ExecStart={{ fleet_root }}/ansible/bin/ansible-pull --url {{ fleet_pull_repo }} --checkout {{ fleet_pull_branch }} \
+          --directory {{ fleet_root }}/fleet --only-if-changed --connection local \
+          --inventory inventory.yml --limit {{ inventory_hostname }} \
+          --extra-vars ansible_host=localhost playbooks/site.yml
+    - name: 50n-fleet-pull.timer
+      content: |
+        [Unit]
+        Description=Check 50n-fleet for changes every {{ fleet_pull_interval }}
+        [Timer]
+        OnBootSec=5min
+        OnUnitActiveSec={{ fleet_pull_interval }}
+        RandomizedDelaySec=5min
+        [Install]
+        WantedBy=timers.target
+  loop_control: { label: "{{ item.name }}" }
+
+- name: Start the pull timer
+  ansible.builtin.systemd_service:
+    name: 50n-fleet-pull.timer
+    enabled: true
+    state: started
+    daemon_reload: true

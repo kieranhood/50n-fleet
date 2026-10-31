@@ -1,0 +1,5 @@
+- name: Restart portal
+  community.docker.docker_compose_v2:
+    project_src: "{{ fleet_root }}/portal"
+    files: [compose.yml]
+    state: restarted

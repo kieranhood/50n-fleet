@@ -1,0 +1,62 @@
+# Defaults for every site. A site overrides any of these in host_vars/<site>.yml.
+
+# --- Where things live -----------------------------------------------------------------------------------------------
+fleet_root: /opt/50n
+fleet_site_dir: "{{ inventory_dir }}/sites/{{ inventory_hostname }}"
+
+# --- Connecting ------------------------------------------------------------------------------------------------------
+# Day to day, servers are reached by SSH through their Cloudflare Tunnel (ssh-<site>.50northsystems.com), so no
+# server needs an open SSH port. For the first set-up, before the tunnel exists, run with -e ansible_host=<LAN IP>.
+ansible_host: "ssh-{{ inventory_hostname }}.50northsystems.com"
+ansible_user: fiftyn
+ansible_become: true
+fleet_ssh_via_cloudflare: "{{ ansible_host is search('50northsystems\\.com$') }}"
+ansible_ssh_common_args: >-
+  {{ '-o ProxyCommand="cloudflared access ssh --hostname %h"' if fleet_ssh_via_cloudflare else '' }}
+
+# --- Base system -----------------------------------------------------------------------------------------------------
+fleet_admin_user: fiftyn
+# SSH public keys allowed to log in as the admin user. Password logins are switched off only when this has a key in
+# it, so a server can't be locked out by mistake.
+fleet_admin_keys: []
+fleet_timezone: Europe/London
+
+# --- Apps: each site turns on what it runs ---------------------------------------------------------------------------
+cloudflared_enabled: true
+
+portal_enabled: false
+portal_image: ghcr.io/kieranhood/50ncaptiveportal
+# A released version (a git tag v2.1.0 publishes 2.1.0). "edge" is the latest main, for trying a change on one site.
+portal_version: "2.1.0"
+# The host port guests' phones reach; UniFi's External Portal Server sends them to http://<portal IP>/.
+portal_port: 80
+# Publish only on this address (empty: all of the server's addresses).
+portal_bind_ip: ""
+portal_memory: 128m
+# The clients this server serves (usually one on site). See host_vars/dartlings.yml for the shape.
+portal_clients: []
+
+pms_enabled: false
+pms_repo: git@github.com:kieranhood/PMS.git
+pms_ref: main
+# PMS updates are deliberate: the role installs the PMS once, and updates it only when run with -e pms_update=true
+# (which uses the PMS's own scripts/update.sh: back up, update, restart, wait for /healthz). Never mid-charter.
+pms_update: false
+
+# --- Monitoring ------------------------------------------------------------------------------------------------------
+# Every minute the server checks its apps and pushes the result to its Uptime Kuma push monitor (URL in secrets).
+heartbeat_enabled: true
+heartbeat_disk_limit_percent: 90
+netdata_enabled: false
+
+# --- Self-updating from this repo (for boats that are often offline) -------------------------------------------------
+fleet_pull_enabled: false
+fleet_pull_repo: git@github.com:kieranhood/50n-fleet.git
+fleet_pull_branch: main
+fleet_pull_interval: 30min
+sops_version: "3.9.4"
+fleet_pull_ansible_version: ">=2.16,<2.19"
+
+# --- Secrets ---------------------------------------------------------------------------------------------------------
+# Loaded from sites/<site>/secrets.sops.yml (encrypted with SOPS) into site_secrets. See sites/_template/secrets.example.yml.
+site_secrets: {}

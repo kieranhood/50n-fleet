@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#d7b888">
+  <title>Dartlings Guest Wi-Fi</title>
+  <!--
+    Dartlings guest Wi-Fi portal — supported by 50North Systems.
+
+    Guests can't reach the internet until they've been authorised, so the
+    logo and fonts are served by the portal itself. Asset paths are relative:
+    the server adds a <base> tag pointing at this client's folder, and files
+    not found there (the 50NORTH badge and its fonts) come from /shared.
+    Nothing is loaded from external sites.
+
+    Colours and fonts match www.dartlingsplay.com (see the :root block).
+    Averia Libre and Fragment Mono are SIL Open Font Licence fonts.
+  -->
+  <link rel="stylesheet" href="50north-badge.css">
+  <style>
+    @font-face { font-family: "Averia Libre"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/averia-libre-400.woff2") format("woff2"); }
+    @font-face { font-family: "Averia Libre"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/averia-libre-700.woff2") format("woff2"); }
+    @font-face { font-family: "Averia Libre"; font-style: italic; font-weight: 400; font-display: swap; src: url("fonts/averia-libre-400-italic.woff2") format("woff2"); }
+    @font-face { font-family: "Fragment Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/fragment-mono-400.woff2") format("woff2"); }
+
+    :root {
+      /* Dartlings brand palette */
+      --cream: #f6f2e9;
+      --green: #1f7a4d;
+      --green-dark: #17603c;
+      --sand: #d7b888;
+      --terracotta: #df754d;
+      --charcoal: #3f3b37;
+      --muted: #6b6259;
+      --line: #e6dcc9;
+      --error: #b3402a;
+      --radius: 28px;
+      --font-heading: "Averia Libre", Georgia, "Times New Roman", serif;
+      --font-body: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      --font-meta: "Fragment Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; min-height: 100%; }
+
+    body {
+      background: var(--sand);
+      color: var(--charcoal);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -webkit-text-size-adjust: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: max(24px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Floating dots, as on dartlingsplay.com. Kept clear of the footer. */
+    .dots-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .dots-bg span {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      animation: drift 10s ease-in-out infinite;
+    }
+    .dots-bg span:nth-child(1) { background: var(--charcoal);   top: 6%;  left: 12%; }
+    .dots-bg span:nth-child(2) { background: var(--terracotta); top: 3%;  right: 16%; animation-delay: -3s; }
+    .dots-bg span:nth-child(3) { background: var(--cream);      top: 30%; right: 3%;  animation-delay: -6s; }
+    .dots-bg span:nth-child(4) { background: var(--terracotta); top: 70%; left: 4%;   animation-delay: -2s; }
+    .dots-bg span:nth-child(5) { background: var(--charcoal);   top: 58%; right: 4%;  animation-delay: -5s; }
+    .dots-bg span:nth-child(6) { background: var(--cream);      top: 42%; left: 3%;   animation-delay: -8s; }
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0); }
+      33%      { transform: translate(8px, -12px); }
+      66%      { transform: translate(-6px, 8px); }
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      margin: auto 0;
+    }
+
+    .card {
+      background: var(--cream);
+      border-radius: var(--radius);
+      box-shadow: 0 24px 60px -28px rgba(63, 59, 55, .55);
+      padding: 34px 24px 28px;
+      text-align: center;
+    }
+
+    .logo {
+      display: block;
+      width: 230px;
+      max-width: 80%;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .tagline {
+      margin: 14px auto 0;
+      max-width: 290px;
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: 17px;
+      line-height: 1.3;
+      color: var(--green);
+    }
+
+    .rule {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 22px 0 24px;
+    }
+    .rule i { width: 8px; height: 8px; border-radius: 50%; display: block; }
+    .rule i:nth-child(1) { background: var(--charcoal); }
+    .rule i:nth-child(2) { background: var(--terracotta); }
+    .rule i:nth-child(3) { background: var(--sand); }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      font-family: var(--font-meta);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 30px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--green);
+    }
+    .lead { margin: 0 0 22px; color: var(--muted); }
+
+    .network {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 100%;
+      margin: 0 0 20px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #ebe3d3;
+      color: var(--green);
+      font-family: var(--font-meta);
+      font-size: 13px;
+    }
+    .network svg { flex: none; }
+    .network span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .terms {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1.5px solid var(--line);
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
+    .terms input {
+      flex: none;
+      width: 22px;
+      height: 22px;
+      margin: 0;
+      accent-color: var(--green);
+      cursor: pointer;
+    }
+    .terms a { color: var(--green); font-weight: 700; }
+
+    button, .btn {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 54px;
+      padding: 14px 20px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--green);
+      color: var(--cream);
+      font-family: var(--font-heading);
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+    }
+    button:hover, .btn:hover { background: var(--green-dark); }
+    button:active, .btn:active { transform: scale(.98); }
+    button:focus-visible, .btn:focus-visible, .terms input:focus-visible, a:focus-visible {
+      outline: 3px solid var(--terracotta);
+      outline-offset: 3px;
+    }
+    button[disabled] { opacity: .8; cursor: progress; }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(246, 242, 233, .35);
+      border-top-color: var(--cream);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      display: none;
+    }
+    .busy .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error {
+      margin: 14px 0 0;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: #f8e2d8;
+      color: var(--error);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .success-badge {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: var(--green);
+      display: grid;
+      place-items: center;
+      animation: pop .45s cubic-bezier(.2, 1.6, .4, 1) both;
+    }
+    @keyframes pop { from { transform: scale(.4); opacity: 0; } }
+
+    [hidden] { display: none !important; }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      margin-top: 22px;
+      text-align: center;
+      font-family: var(--font-meta);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--charcoal);
+    }
+    footer a { color: inherit; }
+    .site { display: inline-block; text-decoration: none; border-bottom: 1px solid currentColor; }
+    .address { margin: 4px 0 14px; }
+
+    /* Terms dialog */
+    dialog {
+      width: min(560px, calc(100vw - 32px));
+      max-height: calc(100dvh - 48px);
+      padding: 0;
+      border: 0;
+      border-radius: var(--radius);
+      background: var(--cream);
+      color: var(--charcoal);
+      font-family: var(--font-body);
+      box-shadow: 0 30px 80px rgba(63, 59, 55, .45);
+    }
+    dialog::backdrop { background: rgba(63, 59, 55, .6); }
+    .dialog-body { padding: 26px 24px 8px; overflow-y: auto; max-height: calc(100dvh - 140px); }
+    .dialog-body h2 { margin: 0 0 12px; font-family: var(--font-heading); font-size: 24px; color: var(--green); letter-spacing: -0.02em; }
+    .dialog-body h3 { margin: 18px 0 4px; font-family: var(--font-heading); font-size: 17px; color: var(--green); }
+    .dialog-body p, .dialog-body li { font-size: 14px; color: var(--muted); }
+    .dialog-body ul { padding-left: 20px; }
+    .dialog-foot { padding: 14px 24px 24px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
+    @media (max-width: 360px) {
+      .card { padding: 28px 18px 22px; }
+      h1 { font-size: 27px; }
+      footer { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dots-bg" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <main>
+    <div class="card">
+      <img class="logo" src="logo.png" alt="Dartlings" width="640" height="153">
+      <p class="tagline">A nature inspired café for curious little ones to play, explore and grow.</p>
+      <div class="rule" aria-hidden="true"><i></i><i></i><i></i></div>
+
+      <!-- Step 1: connect -->
+      <section id="view-connect">
+        <p class="eyebrow">Free guest Wi-Fi</p>
+        <h1>Welcome to Dartlings</h1>
+        <p class="lead">Hop online in a tap while your little explorers play.</p>
+
+        <p class="network" id="network" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.6a10 10 0 0 1 14 0"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+          <span id="network-name"></span>
+        </p>
+
+        <form id="connect-form" action="/authorise" method="post" novalidate>
+          <input type="hidden" name="id" id="f-id">
+          <input type="hidden" name="ap" id="f-ap">
+          <input type="hidden" name="t" id="f-t">
+          <input type="hidden" name="url" id="f-url">
+          <input type="hidden" name="ssid" id="f-ssid">
+          <input type="hidden" name="client" id="f-client">
+
+          <label class="terms">
+            <input type="checkbox" name="accept_terms" id="accept" value="yes" required>
+            <span>I agree to the <a href="#terms" id="open-terms">Wi-Fi terms of use</a>.</span>
+          </label>
+
+          <button type="submit" id="connect-btn">
+            <span class="spinner" aria-hidden="true"></span>
+            <span class="label">Connect to Wi-Fi</span>
+          </button>
+
+          <p class="error" id="error" role="alert" hidden></p>
+        </form>
+      </section>
+
+      <!-- Step 2: connected -->
+      <section id="view-success" hidden>
+        <div class="success-badge" aria-hidden="true">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#f6f2e9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </div>
+        <p class="eyebrow">All set</p>
+        <h1>You're connected!</h1>
+        <p class="lead">Enjoy your coffee, and happy playing.</p>
+        <a class="btn" id="continue" href="https://www.dartlingsplay.com">Continue</a>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <a class="site" href="https://www.dartlingsplay.com">www.dartlingsplay.com</a>
+    <p class="address">Dartington Hall Estate · Totnes · TQ9 6EL</p>
+    <span class="north" title="Guest Wi-Fi supported by 50NORTH SYSTEMS">
+      <span class="north-label">Wi-Fi supported by</span>
+      <span class="wordmark-50n">50NORTH<span> SYSTEMS</span></span>
+    </span>
+  </footer>
+
+  <dialog id="terms" aria-labelledby="terms-title">
+    <div class="dialog-body">
+      <h2 id="terms-title">Wi-Fi terms of use</h2>
+      <p>Dartlings Indoor Play Café provides free guest Wi-Fi as a courtesy to visitors. By connecting you agree to the following.</p>
+
+      <h3>Acceptable use</h3>
+      <ul>
+        <li>Don't use the service for anything illegal, harmful, offensive or that infringes anyone else's rights, including copyright.</li>
+        <li>Don't attempt to access other devices on the network, interfere with the network, or bypass any filtering or security.</li>
+        <li>Please be considerate &mdash; very heavy use (large downloads, streaming in high quality) may be limited so everyone gets a fair share.</li>
+      </ul>
+
+      <h3>Content filtering</h3>
+      <p>Websites and services considered unsuitable for a family venue may be filtered or blocked.</p>
+
+      <h3>Security</h3>
+      <p>Public Wi-Fi is shared with other visitors. Use secure (https) websites and apps for anything personal, and keep your device's software up to date.</p>
+
+      <h3>No guarantee</h3>
+      <p>The service is provided &ldquo;as is&rdquo; with no guarantee of availability, speed or suitability. Dartlings isn't liable for any loss or damage arising from its use, to the extent permitted by law. Access may be withdrawn at any time.</p>
+
+      <h3>Your data</h3>
+      <p>To provide the service the network records your device's hardware (MAC) address, connection times and data usage. This information is used only to run and protect the network and isn't used for marketing.</p>
+    </div>
+    <div class="dialog-foot">
+      <button type="button" id="agree-terms">I agree</button>
+    </div>
+  </dialog>
+
+  <script>
+    (function () {
+      var DEFAULT_REDIRECT = 'https://www.dartlingsplay.com';
+      var params = new URLSearchParams(location.search);
+      var $ = function (id) { return document.getElementById(id); };
+
+      // UniFi's external-portal redirect passes the guest details in the URL:
+      // id = client MAC, ap = access point MAC, t = timestamp, url = page they asked for, ssid = network name
+      ['id', 'ap', 't', 'url', 'ssid'].forEach(function (k) { $('f-' + k).value = params.get(k) || ''; });
+      // Which client portal this is (added by the server) so the connect request is routed back to it
+      var clientMeta = document.querySelector('meta[name="portal-client"]');
+      $('f-client').value = clientMeta ? clientMeta.content : '';
+
+      var ssid = params.get('ssid');
+      if (ssid) {
+        $('network-name').textContent = ssid;
+        $('network').hidden = false;
+      }
+
+      var form = $('connect-form');
+      var btn = $('connect-btn');
+      var errorBox = $('error');
+      var dialog = $('terms');
+
+      function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.hidden = false;
+      }
+
+      function showSuccess(redirect) {
+        var target = safeUrl(redirect) || safeUrl(params.get('url')) || DEFAULT_REDIRECT;
+        $('continue').href = target;
+        $('view-connect').hidden = true;
+        $('view-success').hidden = false;
+        $('continue').focus();
+      }
+
+      // Only follow http(s) links, and skip the OS captive-portal probe URLs
+      function safeUrl(u) {
+        if (!u) return null;
+        try {
+          var parsed = new URL(u);
+          if (!/^https?:$/.test(parsed.protocol)) return null;
+          if (/captive\.apple\.com|connectivitycheck|generate_204|msftconnecttest|nmcheck|detectportal/i.test(parsed.href)) return null;
+          return parsed.href;
+        } catch (e) { return null; }
+      }
+
+      // Returning from a no-JavaScript form submit
+      if (params.get('status') === 'connected') showSuccess(params.get('redirect'));
+      if (params.get('status') === 'error') showError('Sorry, we couldn’t connect you. Please try again or ask a member of staff.');
+
+      $('open-terms').addEventListener('click', function (e) {
+        e.preventDefault();
+        if (dialog.showModal) dialog.showModal();
+      });
+      $('agree-terms').addEventListener('click', function () {
+        $('accept').checked = true;
+        dialog.close();
+        btn.focus();
+      });
+      dialog.addEventListener('click', function (e) {
+        if (e.target === dialog) dialog.close();
+      });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errorBox.hidden = true;
+
+        if (!$('accept').checked) {
+          showError('Please tick the box to accept the Wi-Fi terms of use.');
+          $('accept').focus();
+          return;
+        }
+        if (!params.get('id')) {
+          showError('We couldn’t identify your device. Please disconnect from the Wi-Fi, reconnect and try again.');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.classList.add('busy');
+        btn.querySelector('.label').textContent = 'Connecting…';
+
+        var body = new URLSearchParams(new FormData(form));
+        fetch(form.action, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString()
+        })
+          .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+          .then(function (r) {
+            if (!r.ok || !r.data.ok) throw new Error(r.data.error || 'failed');
+            showSuccess(r.data.redirect);
+          })
+          .catch(function () {
+            btn.disabled = false;
+            btn.classList.remove('busy');
+            btn.querySelector('.label').textContent = 'Try again';
+            showError('Sorry, we couldn’t connect you. Please try again or ask a member of staff.');
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

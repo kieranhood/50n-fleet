@@ -1,0 +1,69 @@
+# The OS foundation every server gets: packages, automatic security updates, time zone, the admin user and SSH.
+- name: Install base packages
+  ansible.builtin.apt:
+    name: [ca-certificates, curl, git, gnupg, jq, unattended-upgrades, apt-listchanges]
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Name the server after its site
+  ansible.builtin.hostname:
+    name: "50n-{{ inventory_hostname }}"
+
+- name: Set the time zone
+  community.general.timezone:
+    name: "{{ fleet_timezone }}"
+
+- name: Turn on automatic security updates
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    mode: "0644"
+
+- name: Make the journald settings folder
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    mode: "0755"
+
+- name: Keep the system journal small (small disks, metered links)
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf.d/50n.conf
+    content: |
+      [Journal]
+      SystemMaxUse=200M
+    mode: "0644"
+  notify: Restart journald
+
+- name: Create the admin user
+  ansible.builtin.user:
+    name: "{{ fleet_admin_user }}"
+    groups: [sudo]
+    append: true
+    shell: /bin/bash
+
+- name: Let the admin user use sudo without a password (it has no password; SSH keys only)
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/50n-admin
+    content: "{{ fleet_admin_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    mode: "0440"
+    validate: visudo -cf %s
+
+- name: Add 50NORTH admins' SSH keys
+  ansible.posix.authorized_key:
+    user: "{{ fleet_admin_user }}"
+    key: "{{ item }}"
+  loop: "{{ fleet_admin_keys }}"
+
+- name: SSH keys only, no root login (only once an admin key is in place, so nobody is locked out)
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/50n.conf
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin no
+    mode: "0644"
+    validate: sshd -t -f %s
+  when: fleet_admin_keys | length > 0
+  notify: Reload ssh

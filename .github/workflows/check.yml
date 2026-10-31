@@ -1,0 +1,36 @@
+# Checks every change before it can reach a site: Ansible syntax and lint, and every site's generated files (portal
+# settings must be valid JSON, compose files must be valid, heartbeat scripts must be valid shell).
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Ansible
+        run: |
+          pip install "ansible-core>=2.16,<2.19" ansible-lint
+          ansible-galaxy collection install -r requirements.yml
+      - name: Syntax
+        run: ansible-playbook playbooks/site.yml --syntax-check
+      - name: Lint
+        run: ansible-lint playbooks/site.yml tests/render.yml
+      - name: Render every site
+        run: ansible-playbook tests/render.yml -e render_dir=$RUNNER_TEMP/render
+      - name: Check the rendered files
+        run: |
+          shopt -s nullglob
+          for f in $RUNNER_TEMP/render/*/portal/clients/*/client.json; do python -m json.tool "$f" >/dev/null && echo "ok $f"; done
+          for d in $RUNNER_TEMP/render/*/portal; do docker compose --project-directory "$d" -f "$d/compose.yml" config -q && echo "ok $d/compose.yml"; done
+          for f in $RUNNER_TEMP/render/*/50n-heartbeat; do sh -n "$f" && echo "ok $f"; done

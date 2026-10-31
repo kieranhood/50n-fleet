@@ -1,0 +1,71 @@
+# The guest Wi-Fi captive portal (kieranhood/50NCaptivePortal), as a pinned container image. Each client's page comes
+# from sites/<site>/portal/<client id>/public and its client.json is made from portal_clients in host_vars.
+- name: Make the portal folders
+  ansible.builtin.file:
+    path: "{{ fleet_root }}/portal/clients/{{ item.id }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ portal_clients }}"
+  loop_control: { label: "{{ item.id }}" }
+
+- name: Copy each client's page, logo and fonts
+  ansible.builtin.copy:
+    src: "{{ fleet_site_dir }}/portal/{{ item.id }}/public"
+    dest: "{{ fleet_root }}/portal/clients/{{ item.id }}/"
+    mode: "u=rwX,go=rX"
+  loop: "{{ portal_clients }}"
+  loop_control: { label: "{{ item.id }}" }
+  notify: Restart portal
+
+- name: Write each client's settings
+  ansible.builtin.template:
+    src: client.json.j2
+    dest: "{{ fleet_root }}/portal/clients/{{ item.id }}/client.json"
+    mode: "0644"
+  loop: "{{ portal_clients }}"
+  loop_control: { label: "{{ item.id }}" }
+  notify: Restart portal
+
+- name: Write the portal's secrets
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ fleet_root }}/portal/.env"
+    mode: "0600"
+  notify: Restart portal
+
+- name: Write the portal's compose file
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ fleet_root }}/portal/compose.yml"
+    mode: "0644"
+
+- name: Sign in to GitHub's container registry (the portal image is private)
+  community.docker.docker_login:
+    registry_url: ghcr.io
+    username: "{{ site_secrets.ghcr_username | default('kieranhood') }}"
+    password: "{{ site_secrets.ghcr_token }}"
+  when: site_secrets.ghcr_token | default('') | length > 0
+  no_log: true
+
+- name: Start the portal (pinned to portal_version)
+  community.docker.docker_compose_v2:
+    project_src: "{{ fleet_root }}/portal"
+    files: [compose.yml]
+    state: present
+    pull: missing
+
+- name: Run any pending restart now, before the health check
+  ansible.builtin.meta: flush_handlers
+
+- name: Check the portal answers /healthz
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ portal_port }}/healthz"
+    return_content: true
+  register: portal_health
+  until: portal_health.status == 200
+  retries: 15
+  delay: 2
+
+- name: Show the running version
+  ansible.builtin.debug:
+    msg: "Portal {{ portal_health.json.version | default('?') }} is up on port {{ portal_port }}"

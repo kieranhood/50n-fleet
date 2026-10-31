@@ -1,0 +1,7 @@
+# Installed collections (ansible-galaxy collection install -r requirements.yml)
+.collections/
+# Never commit decrypted secrets or keys
+*.dec.yml
+*.key
+keys.txt
+.env

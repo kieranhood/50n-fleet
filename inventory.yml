@@ -1,0 +1,9 @@
+# Every server 50NORTH SYSTEMS looks after. One entry per site; the name is the site's folder in sites/ and its file
+# in host_vars/. Group by kind so a change can be rolled out to cafes or yachts separately.
+all:
+  children:
+    cafes:
+      hosts:
+        dartlings:
+    yachts:
+      hosts: {}

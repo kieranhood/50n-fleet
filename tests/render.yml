@@ -1,0 +1,68 @@
+# Renders every site's generated files (portal client.json, .env and compose file) into a local folder, without
+# touching any server, so mistakes show up in CI before they reach a site:
+#   ansible-playbook tests/render.yml                     → /tmp/50n-render/<site>/...
+#   ansible-playbook tests/render.yml -e render_dir=out
+- name: Render each site's generated files locally
+  hosts: all
+  connection: local
+  gather_facts: false
+  vars:
+    out: "{{ render_dir | default('/tmp/50n-render') }}/{{ inventory_hostname }}"
+  tasks:
+    - name: Make the output folder
+      ansible.builtin.file:
+        path: "{{ out }}/portal/clients"
+        state: directory
+        mode: "0755"
+      when: portal_enabled
+
+    - name: Check each portal client has its page
+      ansible.builtin.stat:
+        path: "{{ fleet_site_dir }}/portal/{{ item.id }}/public/index.html"
+      register: pages
+      loop: "{{ portal_clients }}"
+      loop_control: { label: "{{ item.id }}" }
+      when: portal_enabled
+
+    - name: Fail if a client's page is missing
+      ansible.builtin.assert:
+        that: item.stat.exists
+        fail_msg: "Missing {{ fleet_site_dir }}/portal/{{ item.item.id }}/public/index.html"
+      loop: "{{ pages.results | default([]) }}"
+      loop_control: { label: "{{ item.item.id | default('-') }}" }
+      when: portal_enabled
+
+    - name: Copy each client's page
+      ansible.builtin.copy:
+        src: "{{ fleet_site_dir }}/portal/{{ item.id }}/public"
+        dest: "{{ out }}/portal/clients/{{ item.id }}/"
+        mode: "u=rwX,go=rX"
+      loop: "{{ portal_clients }}"
+      loop_control: { label: "{{ item.id }}" }
+      when: portal_enabled
+
+    - name: Render each client.json
+      ansible.builtin.template:
+        src: ../roles/portal/templates/client.json.j2
+        dest: "{{ out }}/portal/clients/{{ item.id }}/client.json"
+        mode: "0644"
+      loop: "{{ portal_clients }}"
+      loop_control: { label: "{{ item.id }}" }
+      when: portal_enabled
+
+    - name: Render the portal's .env and compose file
+      ansible.builtin.template:
+        src: "../roles/portal/templates/{{ item.src }}"
+        dest: "{{ out }}/portal/{{ item.dest }}"
+        mode: "0600"
+      loop:
+        - { src: env.j2, dest: .env }
+        - { src: compose.yml.j2, dest: compose.yml }
+      when: portal_enabled
+
+    - name: Render the heartbeat script
+      ansible.builtin.template:
+        src: ../roles/monitoring/templates/heartbeat.sh.j2
+        dest: "{{ out }}/50n-heartbeat"
+        mode: "0755"
+      when: heartbeat_enabled

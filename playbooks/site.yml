@@ -1,0 +1,47 @@
+# Brings servers into line with this repo. Safe to re-run: it only changes what differs.
+#   ansible-playbook playbooks/site.yml --limit dartlings          one site
+#   ansible-playbook playbooks/site.yml --limit cafes              a group
+#   ansible-playbook playbooks/site.yml --limit dartlings --tags portal   just the portal
+#   ansible-playbook playbooks/site.yml --limit dartlings --check --diff  show what would change
+- name: Configure 50NORTH SYSTEMS servers
+  hosts: all
+  gather_facts: true
+
+  pre_tasks:
+    - name: Check this is a supported OS (64-bit Debian, Ubuntu or Raspberry Pi OS)
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "Debian"
+          - ansible_architecture in ["x86_64", "aarch64"]
+        fail_msg: "Needs a 64-bit Debian-based OS; this is {{ ansible_distribution }} on {{ ansible_architecture }}"
+      tags: [always]
+
+    - name: Look for this site's secrets
+      ansible.builtin.stat:
+        path: "{{ fleet_site_dir }}/secrets.sops.yml"
+      delegate_to: localhost
+      become: false
+      register: secrets_file
+      tags: [always]
+
+    - name: Load this site's secrets
+      community.sops.load_vars:
+        file: "{{ fleet_site_dir }}/secrets.sops.yml"
+        name: site_secrets
+      when: secrets_file.stat.exists
+      tags: [always]
+
+    - name: Warn when a site has no secrets file yet
+      ansible.builtin.debug:
+        msg: "No {{ fleet_site_dir }}/secrets.sops.yml yet: apps needing keys will be skipped or run in dry-run."
+      when: not secrets_file.stat.exists
+      tags: [always]
+
+  roles:
+    - { role: base, tags: [base] }
+    - { role: docker, tags: [docker], when: portal_enabled or pms_enabled }
+    - { role: cloudflared, tags: [cloudflared], when: cloudflared_enabled }
+    - { role: portal, tags: [portal], when: portal_enabled }
+    - { role: pms, tags: [pms], when: pms_enabled }
+    - { role: monitoring, tags: [monitoring] }
+    - { role: fleet_pull, tags: [fleet_pull], when: fleet_pull_enabled }

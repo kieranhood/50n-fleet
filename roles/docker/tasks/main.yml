@@ -1,0 +1,42 @@
+# Docker Engine and the compose plugin from Docker's own apt repository.
+- name: Make the apt keyrings folder
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Add Docker's signing key
+  ansible.builtin.get_url:
+    url: "https://download.docker.com/linux/{{ docker_distro }}/gpg"
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: Add Docker's apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ docker_arch }} signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/{{ docker_distro }} {{ ansible_distribution_release }} stable
+    filename: docker
+    state: present
+
+- name: Install Docker
+  ansible.builtin.apt:
+    name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
+    update_cache: true
+
+- name: Rotate container logs (small disks)
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": { "max-size": "10m", "max-file": "3" }
+      }
+    mode: "0644"
+  notify: Restart docker
+
+- name: Start Docker on boot
+  ansible.builtin.systemd_service:
+    name: docker
+    enabled: true
+    state: started
