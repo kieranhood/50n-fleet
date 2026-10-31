@@ -4,6 +4,9 @@ Every server 50NORTH SYSTEMS looks after, described in one place, and the automa
 settings live here as files; Ansible makes the servers match them. Nothing is changed on a server by hand, so this
 repo (and its history) is always the true record of every installation.
 
+The team handbook (set-up, workflows, secrets, documents, monitoring, rules) is at
+https://claude.ai/artifact/JhMK219QfR7BpBaw3iLDH8.
+
 ```
 inventory.yml                 every site, grouped (cafes, yachts)
 group_vars/all.yml            defaults for every site
@@ -18,6 +21,7 @@ sites/_template/              copy this for a new site
 playbooks/site.yml            the playbook: base OS, Docker, Cloudflare Tunnel, portal, PMS, monitoring, self-update
 roles/                        one role per job (base, docker, cloudflared, portal, pms, monitoring, fleet_pull)
 tests/render.yml              renders every site's generated files locally (also run by CI)
+tools/drawio/                 the 50NORTH draw.io shape library (and the script that builds it)
 .sops.yaml                    who can decrypt which site's secrets
 ```
 
@@ -80,6 +84,11 @@ How they fit together:
 - **`site.md` is the current state.** Plans, surveys and commissioning notes are the dated history behind it.
 - Surveys and commissioning notes name the **plan revision** they used (e.g. "Ground floor, rev B").
 - A survey's open actions go on the commissioning note's snag list.
+
+**Diagrams.**
+- **Equipment on the floor or deck plan:** draw.io with the 50NORTH library (`tools/drawio/50north-network.xml`), starting from `sites/_template/plans/network-layout.drawio`. The steps are in the plans template.
+- **Logical topology (links, VLANs):** Mermaid inside `site.md`, which GitHub draws.
+- **Wi-Fi coverage design:** UniFi Design Center for cafés, Ekahau or Hamina for yachts. The exported PDF goes in `surveys/`.
 
 **Large files stay out of Git.** Keep files here small: compressed heatmaps, annotated plans and photos, each under
 5 MB (CI rejects bigger ones). Put raw survey projects (e.g. Ekahau `.esx`, ignored by Git), CAD drawings and

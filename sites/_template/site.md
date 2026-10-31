@@ -48,6 +48,18 @@ or the key in `secrets.sops.yml` instead.
 | Server | | DHCP reservation |
 | UniFi console | | |
 
+Logical topology (GitHub draws this; keep names as in UniFi):
+
+```mermaid
+flowchart LR
+  ISP[Internet: provider / Starlink / 4G] --> GW[GW: UniFi gateway]
+  GW --> SW1[SW-01: PoE switch]
+  SW1 --> AP1[AP-01]
+  SW1 --> SRV[SRV: server]
+  GW -. "VLAN __ Guest" .-> AP1
+  GW -. "VLAN __ Management" .-> SRV
+```
+
 Firewall rules that matter (UniFi):
 - Guest → server: TCP 80 only (the portal). Nothing else, in particular not the PMS (TCP 3000).
 - Server → console: TCP 443 (UniFi API).

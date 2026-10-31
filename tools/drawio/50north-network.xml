@@ -1,0 +1,58 @@
+<mxlibrary>[
+ {
+  "xml": "jVLBTsMwDP2aHJHSZCCuazZ2AWkSB85Z67URaV0lZnR8PU6bbQwxiUMkv/f8HMeO0KYbN8EO7QvW4IVeC20CIs1RNxrwXijpaqFXQinJR6inG2oxqXKwAXr6j0HNhoP1HzAzy+2dzGUiHX1m2eWGyKBsqeMuVwWHNg5QpWv2bgQuWO6d9wY9hsmkF8bo9QPzkQK+ww9F3suyWJyVN1dTy4pKNbCnV/eV7i2KE86NJOztDvwWoyOHPXMVvxS4bHmAQK6y/vlXwg6JsEvtetf86VhmgXBgNk+ENRhvTnWi8kg3gB1QOHLKZ35Imuzj7GrBNS1dczbOuDk7LyviIG/pBC+/YdKuPss3",
+  "w": 28,
+  "h": 28,
+  "aspect": "fixed",
+  "title": "Access point (indoor)"
+ },
+ {
+  "xml": "jVJNa8MwDP01Pg6SeIxdG/fj0kFhh53dRE3MlCjYWpfu109O3HYdK8xg0HvPT5JlK226cePt0L5QDaj0SmnjiXiOutEAoioyVyu9VEWRyVbF+o6aT2o2WA89/8dQzIajxQ+YmcXuIUts4BMmVlxuCALKljvpcplLaMMAVSxzcCNIwvLgEA0h+cmk19MSPrCnd/ihPBqjV08X5c3V3IqiYw7q+dV9xbp5fsapkYjR7gF3FBw76oWr5KYgacsjeHaVxe2vA3tipi62i67507FIAtMgbJqIaDDenepEpZFugDpgf5Ijn+kicbLPs6sF17R8y9kw4+bivD6RBOmVzvD6Gybt5rN8Aw==",
+  "w": 28,
+  "h": 28,
+  "aspect": "fixed",
+  "title": "Access point (outdoor)"
+ },
+ {
+  "xml": "jVLNbsIwDH6aHCelCXuAtWxcmDSJA+dATRvNqavUQNnTz23C0CaQdohkfz9ObEfZKoyr6Pr2nWpAZV+VrSIRpyiMFSAqo32t7FIZo+Uo8/aALWZW9y5Cx/8xmGQ4OTxCQjbbJ53LDHzBjEY6djVMJq1s2XKQly4LCQ8esSKkOOusftZlsRB84EifcI85UMcb/zUVLoprnm+acnQ7wA8aPHvqBNtLKyBFyhNE9nuH6z+CHTFTEIFD39x1vGSCqRc0tywcjA/HNkN5ZiugABwvIjn7mtuksHl2LfimzS6zSJgbUt78OG87kCCv4Zre1j1zv37DNw==",
+  "w": 32,
+  "h": 24,
+  "aspect": "fixed",
+  "title": "Switch"
+ },
+ {
+  "xml": "jVLBTsMwDP2a3NtkSLvSjvUCEhIHzllr2gg3rlIzOr4ep8kYICZxiOT3nl/cPkeZelyaYKfhgTpAZe6UqQMRp2pcakBUunCdMjuldSFH6f0VtVzVYrIBPP/HoJPhaPENEtM8J2rmE2aKg7O+j6jqXICWHXlRPAUehBt4lO/elVK+OMSakMJqNHtdbTeV8DMHeoVvSnFTVOUmOsjzk/uIk8ryjPPoiNEeAB9pdnloKz8Gckl1hMCutXj/q+FAzDRKg0XX/+m4zQLTJGwOQDRYroa4UjnBBmgEDidpeXddTCB2mJzkAK4fsktvE2fnhPsv52UjUuSlnOFl+av24218Ag==",
+  "w": 32,
+  "h": 28,
+  "aspect": "fixed",
+  "title": "Gateway / UniFi console"
+ },
+ {
+  "xml": "jVLNTsMwDH6a3NOGAVfawi4gISZxT1fTRjh1lXqj4+lxm4wxxCQOkezvx4ntKFP6aR3s0D1RA6jMvTJlIOIY+akERJVr1yhTqTzXclT+cIHNFlYPNkDP/zHk0bC3uIOIbF5eIzbyARMWOvL1blSm6NjLG6tMwjeHWBJSWDRmdVNd31aCjxzoHX4weqWL7Gp2UM8b9zkXzbJjnm6Zc7Q14DONjh31gm2lCZAixR4Cu63Fx1+CmpjJi8Cia/903CWCaRA0NSscTBcHtkBpWmsgDxwOIvlwDXdRYeJMdQeu7fgcs2PM22/nafoSpAUc09OiF+7sH3wB",
+  "w": 30,
+  "h": 30,
+  "aspect": "fixed",
+  "title": "Server (PMS / captive portal)"
+ },
+ {
+  "xml": "jVHLcsIwDPwa3R2b9gMSWk69lC/wYIE9KFbGEU3o1+PEBqYHZnrQjHZXq9EDTNfPu2QH/8UOCcwHmC4xS8n6uUMi0Co4MFvQWuUA/flCbVZVDTZhlP8YdDH8WLpgYb7t4VzIUa5UycSX6HDxNGDayQfB/WAPizrl2TPnpacqHwNRx8Qp48gxF7WjJD7jnQRt1Jtqm01WnB39o/GRo+zD79K2WXAdDpPg/HLBlarb7ZB7lHTNJVNw4kvFe7mB8hhOvro2lbNjwaeH83mtnNSD3eHzMav25283",
+  "w": 60,
+  "h": 40,
+  "aspect": "fixed",
+  "title": "Rack / cabinet"
+ },
+ {
+  "xml": "jVLRasMwDPwavztOB3tt0rUMNij0C9xGi82UKDhqm+7rJ8fuuo0VZjDo7nSyLVmVdTdtgh3cKzWAqnxSZR2IOEXdVAOiMto3qlwpY7RsZdZ31GJW9WAD9Pwfg0mGk8UjJOZ5t03cyBfMnHj8MAqoRmeHSB6QjlKictzJnVeFhG8esSakMHvK9byihQO9wzdFP+iqWEQH9bzzH7FeUVxxPjVitHvALY2ePfXxUHkUSJHqBIH9weLLr4Q9MVMnCRZ9+6djmQWmQdj8eNFgutvAmcrd2wB1wOEiKWffsEsZi9Rj7cC3LrvMY+LsmHD75bxNQ4I8kCu8DX7WfvyLTw==",
+  "w": 40,
+  "h": 28,
+  "aspect": "fixed",
+  "title": "Internet / Starlink / 4G"
+ },
+ {
+  "xml": "jVJNT8MwDP01OSKlCfyALYOdkJA47BwR00ak9eR6W8uvx2uyrnxM4hDJfn7v2U6irGuHLfl984wBkrKPyjpC5By1g4OUlNExKLtRxmg5yjzdqFZTVe89Qcf/EZgsOPp0gIy4O11ceh5TAaELKyI8SdZhJ+C64VaG3VQS9kz4AQ4T0sS2+kGvq/u5souBG6kYQd6x49f4ebattOS5E4Qabi4wQWX6LWALTKNQTsX1zNB5SU2QPMfjdy/f57SetbPdC0bpYvS4vKpZ0OOB3qBwlnd4kQ0/2v9tw55q4F82Eiz2uULTA13S60fI9OU/+QI=",
+  "w": 100,
+  "h": 0,
+  "aspect": "fixed",
+  "title": "Data cable run"
+ }
+]</mxlibrary>
